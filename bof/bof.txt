@@ -1,7 +1,16 @@
-After examining the bof.c source code, I identified a classic buffer overflow vulnerability. The func function contains a 32-byte buffer called overflowme and uses the unsafe gets() function, which doesn't perform any bounds checking.
-The program passes 0xdeadbeef as the key parameter to the func function, but a conditional statement checks if key equals 0xcafebabe. When this condition is met, the program executes /bin/sh with elevated privileges. Since gets() allows writing beyond the buffer's bounds, I could craft an input to overwrite the key value on the stack.
-Through careful analysis, I determined that I needed to send 52 bytes of padding before reaching the memory location of the key parameter. The first 32 bytes fill the buffer, followed by 20 additional bytes to reach the key parameter. I then appended the value 0xcafebabe in little-endian format (\xbe\xba\xfe\xca).
+After examining the bof.c source code, I identified a classic buffer overflow vulnerability. The func function contains
+a 32-byte buffer called overflowme and uses the unsafe gets() function, which doesn't perform any bounds checking. The
+program passes 0xdeadbeef as the key parameter to the func function, but a conditional statement checks if key equals
+0xcafebabe. When this condition is met, the program executes /bin/sh with elevated privileges. Since gets() allows
+writing beyond the buffer's bounds, I could craft an input to overwrite the key value on the stack. Through careful
+analysis, I determined that I needed to send 52 bytes of padding before reaching the memory location of the key 
+parameter. The first 32 bytes fill the buffer, followed by 20 additional bytes to reach the key parameter. I then 
+appended the value 0xcafebabe in little-endian format (\xbe\xba\xfe\xca). 
+
 The working exploit command was:
 (/usr/bin/python2 -c "print '\x01'*52+'\xbe\xba\xfe\xca'"; cat) | nc 0 9000
-This command sends 52 bytes of padding (using the character \x01), followed by the target value in little-endian format. The cat command keeps the connection open, allowing me to interact with the shell after gaining access.
-The exploit successfully overwrote the key parameter with 0xcafebabe, triggering the condition to provide a shell with elevated privileges, from which I could read the flag.
+
+This command sends 52 bytes of padding (using the character \x01), followed by the target value in little-endian format.
+The cat command keeps the connection open, allowing me to interact with the shell after gaining access. The exploit
+successfully overwrote the key parameter with 0xcafebabe, triggering the condition to provide a shell with elevated
+privileges, from which I could read the flag.
