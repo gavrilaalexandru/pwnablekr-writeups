@@ -1,7 +1,10 @@
 1804289383 --> "random number"
 3735928559 --> "0xdeadbeef"
+small mistake it was 0xcafebabe this time not 0xdeadbeef
+so
+3405691582 --> "0xcafebabe"
 --------------
 ^
-3039230856
+2708864985
 or
-0xB526FB88
+0xA175FFD9
