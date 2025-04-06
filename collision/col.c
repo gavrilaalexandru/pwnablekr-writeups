@@ -1,5 +1,7 @@
 #include <stdio.h>
 #include <string.h>
+#include <unistd.h>
+#include <stdlib.h>
 unsigned long hashcode = 0x21DD09EC;
 unsigned long check_password(const char* p){
 	int* ip = (int*)p;
