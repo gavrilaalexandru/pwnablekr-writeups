@@ -1,0 +1,27 @@
+The program generates a "random" value using rand() and then expects us to input a key. If our key XORed with the random
+value equals 0xcafebabe, we get the flag. The challenge appears difficult at first because we need to guess a key that,
+when XORed with an unknown random value, produces 0xcafebabe.However, there's a crucial insight: rand() is deterministic
+when not seeded properly.
+I created a simple C program to determine what value the rand() function would return:
+#include <stdio.h>
+#include <stdlib.h>
+
+int main() {
+    unsigned int r = rand();
+    printf("Random value: %u (0x%x)\n", r, r);
+    return 0;
+}
+
+When compiled and run on the same system, this program revealed that the first value produced by rand() when
+not properly seeded is 1804289383 (or 0x6b8b4567 in hex).
+
+With this knowledge, I calculated the key needed to satisfy the equation:
+key ^ random = 0xcafebabe
+Since XOR has the property that if a ^ b = c, then a = b ^ c, I can rearrange to:
+key = random ^ 0xcafebabe
+Plugging in the values:
+key = 1804289383 ^ 0xcafebabe
+key = 0x6b8b4567 ^ 0xcafebabe
+key = 0xa1453123
+Converting to decimal:
+key = 2705243427
