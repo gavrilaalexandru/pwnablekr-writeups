@@ -1,0 +1,7 @@
+After transferring the files using scp, I began analyzing the fd.c source code. I quickly noticed that I had complete 
+control over the fd variable, which is critically important because it's used as a parameter in the read() function. In
+Unix-like systems, file descriptor 0 represents standard input (stdin). Looking at the code, I discovered that the program
+subtracts 0x1234 from my input argument. Since 0x1234 in hexadecimal equals 4660 in decimal, running ./fd 4660 would 
+result in a file descriptor of 0, allowing me to write directly to the buf variable from stdin. Furthermore, the condition
+!strcmp(buf, "LETMEWIN") means the check passes when the strings are equal (the negation of strcmp returning 0). Therefore,
+I simply needed to execute ./fd 4660, type LETMEWIN followed by Enter, and the program revealed the flag.
