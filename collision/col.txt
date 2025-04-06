@@ -1,0 +1,17 @@
+After downloading and examining the col.c source code, I found that the program
+required a 20-byte passcode whose bytes, when interpreted as five 4-byte 
+integers, would sum to a specific value: 0x21DD09EC (568134124 in decimal). The
+key vulnerability was in the check_password function, which casts the input
+string to an array of integers and calculates their sum. By understanding how
+little-endian byte order works, I could craft a specific 20-byte input that
+would pass the check. Looking at the target value 0x21DD09EC, I decided to 
+split it into 5 parts, creating four identical integers with value 0x06C5CEC8
+(113626824) and one slightly larger integer 0x06C5CECC (113626828). When summed
+together, these values equal exactly the target hashcode. To craft my payload,
+I used the echo command with the -n flag (to avoid adding a newline) and -e 
+flag (to interpret escape sequences):
+./col `echo -n -e "\xc8\xce\xc5\x06\xc8\xce\xc5\x06\xc8\xce\xc5\x06\xc8\xce\xc5\x06\xcc\xce\xc5\x06"`
+When the program received this input, it correctly calculated the sum as 
+0x21DD09EC, allowing the program to execute /bin/cat flag and reveal the flag.
+Note that the bytes appear reversed in the command because of little-endian 
+byte order, where the least significant byte comes first in memory.
