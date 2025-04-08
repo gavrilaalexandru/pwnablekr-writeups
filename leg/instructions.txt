@@ -1,0 +1,27 @@
+// key 1
+
+pc goes into r3 at 0x00008cdc; pc contains next_instruction + 4 or
+pc = current_instruction + 8
+so r3 will have 0x00008ce4
+
+// key 2
+pc goes once more in r3 at 0x00008d04; but this time are thumb mode,
+represented by the 2-byte increment pattern and instruction size.
+pc containts 0x00008d04 + 4 so 0x00008d08
+but this time we are also adding 4 into r3
+so r3 will have 0x00008d0c
+
+// key 3
+now lr goes into r3. lr is link register and it holds the return address when
+a function call is made. when the bl instruction is used, lr saves the address
+of the instruction immediately after bl so it knows where to return
+let's look at the main function now.
+the function key3 is called at 0x00008d7c with bl, thus lr stores 0x00008d80
+so r3 will have 0x00008d80
+
+// flag
+
+so let's sum up all our keys so far and get the flag
+
+key = 0x00008ce4 + 0x00008d0c + 0x00008d80
+key = 108400 or 1A770
