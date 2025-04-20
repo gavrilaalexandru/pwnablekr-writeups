@@ -1,0 +1,24 @@
+After examining the source code I identified a vulnerability in the login function. The program uses scanf incorrectly by omitting the
+address operator (&) when reading integers: scanf("%d", passcode1) instead of the correct scanf("%d", &passcode1). This means scanf 
+tries to write the input value to the memory address contained in the uninitialized passcode1 variable.
+
+Looking deeper into the code flow, I noticed that when the welcome() function is called before login(), it creates a name[100] buffer on the stack.
+Due to how the stack is reused when welcome() returns and login() begins executing, the passcode1 variable in login() overlaps with part of the 
+previous name buffer. This creates an exploitable condition:
+
+1) I can control the value of passcode1 by placing a memory address at the right offset in the name buffer
+2) When scanf executes, it will write my input to whatever address is stored in passcode1
+3) By overwriting a function's address in the Global Offset Table (GOT), I can redirect execution flow
+
+Through careful analysis with objdump and gdb, I identified:
+
+1) The fflush function's GOT entry address: 0x0804c014
+2) The address of the code that calls system("/bin/cat flag"): 0x080492a1
+
+My exploit strategy:
+
+1) Fill the name buffer with 96 bytes of padding
+2) Append the fflush GOT address (0x0804c014) in little-endian format (\x14\xc0\x04\x08)
+3) When scanf("%d", passcode1) executes, provide the decimal value of 0x080492a1 (134514337)
+
+The working exploit was: python2 -c "print 'A'*96 + '\x14\xc0\x04\x08' + '134517409'" | ./passcode
