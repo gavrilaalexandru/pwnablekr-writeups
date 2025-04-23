@@ -1,0 +1,33 @@
+After examining the source code and playing a little with the executable, I realized the user can insert input twice, 
+even though scanf was only called once. I realized the issue was in this critical line:
+
+if(fd=open("/home/mistake/password",O_RDONLY,0400) < 0){
+
+At first glance, this appears to check if opening the password file was unsuccessful. However, there's a subtle operator 
+precedence issue here. In C, the < operator has higher precedence than =, so this line is actually evaluated as:
+
+if(fd = (open("/home/mistake/password",O_RDONLY,0400) < 0)){
+
+When the file opens successfully, open() returns a positive file descriptor (likely 1). The comparison 1 < 0 evaluates to false (0), so we get:
+
+if(fd = 0){
+
+This assigns 0 to fd instead of the actual file descriptor. Since file descriptor 0 is stdin (standard input), the subsequent
+read(fd, pw_buf, PW_LEN) is actually reading from user input rather than from the password file.
+
+This means I need to input two values:
+
+1) The first input (when the program expects to read from the password file)
+2) The second input (for the password comparison)
+
+These values are then compared after the second input is XORed with 1 (using the xor function) so the second input is equal to the 
+first input XORed with 1.
+
+For example, using "AAAAABBBBB" as the first input:
+
+1) 'A' in binary is 01000001
+   XORed with 1 gives 01000000, which is '@'
+2) 'B' in binary is 01000010
+   XORed with 1 gives 01000011, which is 'C'
+
+So if I input "AAAAABBBBB" first, then "@@@@@CCCCC" second, the check passes and I get the flag.
